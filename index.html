@@ -1,0 +1,309 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title></title>
+
+    <script src="Highcharts.js"></script>
+    <script src="jquery-1.11.0.min.js"></script>
+    <style>
+        #result {
+            text-align: left;
+            color: gray;
+            min-height: 2em;
+        }
+
+        #table-sparkline {
+            margin: 0 auto;
+            border-collapse: collapse;
+        }
+
+        th {
+            font-weight: bold;
+            text-align: left;
+        }
+
+        td,
+        th {
+            padding: 5px;
+            border-bottom: 1px solid silver;
+            height: 20px;
+        }
+
+        thead th {
+            border-top: 2px solid gray;
+            border-bottom: 2px solid gray;
+        }
+
+        .highcharts-tooltip > span {
+            background: white;
+            border: 1px solid silver;
+            border-radius: 3px;
+            box-shadow: 1px 1px 2px #888;
+            padding: 8px;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="result"></div>
+    <div id="Index" data-sparkline="71, 78, 39, 74 ">
+    </div>
+
+   
+    <br />
+    <!--<div class="chart" id="2" data-sparkline="71, 78, 39, 77 " />-->
+    <script>
+
+        var hours = 5.75;
+        /**
+* Create a constructor for sparklines that takes some sensible defaults and merges in the individual
+* chart options. This function is also available from the jQuery plugin as $(element).highcharts('SparkLine').
+*/
+        Highcharts.SparkLine = function (a, b, c, d) {
+            const hasRenderToArg = typeof a === 'string' || a.nodeName;
+            let options = arguments[hasRenderToArg ? 1 : 0];
+            var maxChartPoints = Math.round(hours * 60) + d;//d - Previous Day points count
+            const defaultOptions = {
+                chart: {
+                    renderTo: (options.chart && options.chart.renderTo) || (hasRenderToArg && a),
+                    backgroundColor: null,
+                    borderWidth: 0,
+                    type: 'line',
+                    margin: [2, 0, 2, 0],
+                    width: 650,
+                    height: 250,
+                    style: {
+                        overflow: 'visible'
+                    },
+                    // small optimalization, saves 1-2 ms each sparkline
+                    skipClone: true
+                },
+                title: {
+                    text: ''
+                },
+                credits: {
+                    enabled: false
+                },
+                accessibility: {
+                    enabled: false
+                },
+                xAxis: [{
+                    visible: false,
+                    height: '50%',
+                    width: '30%',
+                    offset: 0,
+                    max: d,
+                    min: 0,
+                }, {
+                    visible: false,
+                    height: '50%',
+                    width: '70%',
+                    left: '30%',
+                    offset: 0,
+                    max: maxChartPoints,
+                    min: d,
+                }],
+
+                yAxis: {
+                    endOnTick: false,
+                    startOnTick: false,
+                    //Updated
+                    lineWidth: 0,
+                    gridLineWidth: 0,
+                    opposite: false,
+                    tickPixelInterval: 40,
+                    startOnTick: false,
+                    endOnTick: false,
+
+                    //End Updated
+                    labels: {
+                        enabled: false
+                    },
+                    title: {
+                        text: null
+                    },
+                    tickPositions: [0],
+                    accessibility: {
+                        enabled: false
+                    },
+
+                },
+                legend: {
+                    enabled: false
+                },
+                tooltip: {
+                    hideDelay: 0,
+                    outside: true,
+                    shared: true,
+                    shadow: false,
+                    style: {
+                        zIndex: 100
+                    },
+                    useHTML: false,
+
+                    formatter: function () {
+                        return  '<b>' + this.y + '</b> ';
+                    }
+                },
+
+                plotOptions: {
+                    series: {
+                        animation: true,
+                        lineWidth: 1.75,
+                        shadow: false,
+                        states: {
+                            hover: {
+                                lineWidth: 1
+                            }
+                        },
+                        marker: {
+                            radius: 1,
+                            states: {
+                                hover: {
+                                    radius: 2
+                                }
+                            }
+                        },
+                        fillOpacity: 0.25
+                    },
+                    column: {
+                        negativeColor: '#910000',
+                        borderColor: 'yellow'
+                    }
+                }
+            };
+
+            options = Highcharts.merge(defaultOptions, options);
+
+            return hasRenderToArg ?
+                new Highcharts.Chart(a, options, c) :
+                new Highcharts.Chart(options, b);
+        };
+
+
+
+
+        let n = 0;
+
+        var PreviousIndex = 5;
+        var arrayLineChart = [1, -4, 4, 7, 5, -9, 10, 4, 4, 7, 5, -4, 4, 7, 5, 9, -10, 4, 1, 4, 4, 7, 5, 9, 10, 4, 4, 7, 5, 4, 4, 7, 5, 9, -10, -4, 6.215, 6.450, 7.56, 9.25, 10];
+        var preArrayLineChart = [1, 4, 4, 7, 5, 9, 10, 4, 1, 1, 4, 4, 7, 5, 9, 10, 4, 4, 7, 5, 4, 4, 7, 5, 4, 4, 7, 5, 9, 1];
+
+
+        var lineInterval = setInterval(DrawLineChart, 1000);
+        var temp = 1;
+        function DrawLineChart() {
+            AddSeriesPoint(Math.random() * temp, true);
+
+            temp++;
+            if (temp > 15)
+                temp = 0;
+        }
+
+        function AddSeriesPoint(xValue, redrawChart) {
+            for (let i = 0; i < Highcharts.charts.length; i += 1) {
+                var series = Highcharts.charts[i].series[1];//.addPoint()
+                //var seriesVolume = Highcharts.charts[0].series[2];
+
+                if (xValue) {
+
+                    series.addPoint(xValue);
+
+                    if (redrawChart)
+                        Highcharts.charts[i].redraw();
+                }
+            }
+        }
+
+        var toolTip = "";
+        const start = +new Date(),
+            tds = Array.from(document.querySelectorAll('div[data-sparkline]')),
+            fullLen = tds.length;
+
+        // Creating 153 sparkline charts is quite fast in modern browsers, but IE8 and mobile
+        // can take some seconds, so we split the input into chunks and apply them in timeouts
+        // in order avoid locking up the browser process and allow interaction.
+        function doChunk() {
+            const time = +new Date(),
+                len = tds.length;
+
+            for (let i = 0; i < len; i += 1) {
+                const td = tds[i];
+                const stringdata = td.dataset.sparkline;
+                const arr = stringdata.split('; ');
+                //const data = arr[0].split(', ').map(parseFloat);
+                const chart = {};
+
+                Highcharts.SparkLine(td, {
+
+
+                    series: [
+                       
+                        {
+                            pointStart: 0,
+                            name: "Old Charts",
+                            data: preArrayLineChart,
+                            xAxis: 0,
+                            yAxis: 0,
+                            zoneAxis: 'y',
+                            zIndex: 0,
+                            zones: [{
+                                color: "#58bbf5"
+                            }],
+                         
+                            dataLabel: {
+                                crop: false,
+                                overflow: 'none'
+                            },
+                            dataGrouping: {
+                                enabled: false
+                            },
+                            marker: {
+                                enabled: false,
+                                radius: 0
+                            }
+
+                        },
+                        {
+                            pointStart: preArrayLineChart.length,
+                            name: "Live Charts",
+                            data: arrayLineChart,
+                            xAxis: 1,
+                            yAxis: 0,
+                            zoneAxis: 'y',
+                            zones: [{
+                                value: 0,
+                                color: '#fa5041'
+                            }, {
+                                color: '#4ab05d'
+                            }],
+                            zIndex: 300,
+                            color: "black",
+                            dataLabel: {
+                                crop: false,
+                                overflow: 'none'
+                            },
+                            dataGrouping: {
+                                enabled: false
+                            },
+                            marker: {
+                                enabled: false,
+                                radius: 0
+                            }
+                        },
+                    ],
+                    chart: chart
+                }, null, preArrayLineChart.length);
+
+                n += 1;
+
+
+           
+            }
+        }
+        doChunk();
+      
+    </script>
+</body>
+</html>
